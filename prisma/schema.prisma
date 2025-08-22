@@ -6,3 +6,86 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model airplane {
+  airplane_id Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  flight      flight[]
+  seat        seat[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model boarding_pass {
+  boarding_pass_id Int       @id @default(autoincrement())
+  purchase_id      Int
+  passenger_id     Int
+  seat_type_id     Int
+  seat_id          Int?
+  flight_id        Int
+  flight           flight    @relation(fields: [flight_id], references: [flight_id], onDelete: Cascade, onUpdate: Restrict, map: "flight_id_bp")
+  passenger        passenger @relation(fields: [passenger_id], references: [passenger_id], onDelete: Cascade, onUpdate: Restrict, map: "passenger_id_bp")
+  purchase         purchase  @relation(fields: [purchase_id], references: [purchase_id], onDelete: Cascade, onUpdate: Restrict, map: "purchase_id_bp")
+  seat             seat?     @relation(fields: [seat_id], references: [seat_id], onDelete: Cascade, onUpdate: Restrict, map: "seat_id_bp")
+  seat_type        seat_type @relation(fields: [seat_type_id], references: [seat_type_id], onDelete: Cascade, onUpdate: Restrict, map: "seat_type_id_bp")
+
+  @@index([flight_id], map: "flight_id_bp")
+  @@index([passenger_id], map: "passenger_id_bp")
+  @@index([purchase_id], map: "purchase_id_bp")
+  @@index([seat_id], map: "seat_id_bp")
+  @@index([seat_type_id], map: "seat_type_id_bp")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model flight {
+  flight_id         Int             @id @default(autoincrement())
+  takeoff_date_time Int
+  takeoff_airport   String          @db.VarChar(255)
+  landing_date_time Int
+  landing_airport   String          @db.VarChar(255)
+  airplane_id       Int
+  boarding_pass     boarding_pass[]
+  airplane          airplane        @relation(fields: [airplane_id], references: [airplane_id], onDelete: Cascade, onUpdate: Restrict, map: "airplane_id_fl")
+
+  @@index([airplane_id], map: "airplane_id_fl")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model passenger {
+  passenger_id  Int             @id @default(autoincrement())
+  dni           String          @db.VarChar(255)
+  name          String          @db.VarChar(255)
+  age           Int
+  country       String          @db.VarChar(255)
+  boarding_pass boarding_pass[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model purchase {
+  purchase_id   Int             @id @default(autoincrement())
+  purchase_date Int
+  boarding_pass boarding_pass[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model seat {
+  seat_id       Int             @id @default(autoincrement())
+  seat_column   String          @db.VarChar(2)
+  seat_row      Int
+  seat_type_id  Int
+  airplane_id   Int
+  boarding_pass boarding_pass[]
+  airplane      airplane        @relation(fields: [airplane_id], references: [airplane_id], onDelete: Cascade, onUpdate: Restrict, map: "airplane_id_se")
+  seat_type     seat_type       @relation(fields: [seat_type_id], references: [seat_type_id], onDelete: Cascade, onUpdate: Restrict, map: "seat_type_id_se")
+
+  @@index([airplane_id], map: "airplane_id_se")
+  @@index([seat_type_id], map: "seat_type_id_se")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model seat_type {
+  seat_type_id  Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  boarding_pass boarding_pass[]
+  seat          seat[]
+}

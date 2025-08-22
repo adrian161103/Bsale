@@ -2,10 +2,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+import { getCheckinSimulation } from "./services/checkinService";
 
 dotenv.config();
-const app = express();
-const prisma = new PrismaClient();
+export const app = express();
+export const prisma = new PrismaClient();
 
 app.use(express.json());
 
@@ -15,14 +16,16 @@ app.get('/flights/:id/passengers', async (req, res) => {
   try {
     const { id } = idSchema.parse(req.params);
 
-    // Placeholder (por ahora, solo validar conexión)
-    const flight = await prisma.flight.findUnique({ where: { flight_id: id } });
+    const result = await getCheckinSimulation(id);
 
-    if (!flight) {
+    if (!result) {
       return res.status(404).json({ code: 404, data: {} });
     }
 
-    return res.json({ code: 200, data: { flightId: id, passengers: [] } });
+    return res.status(200).json({
+      code: 200,
+      data: result,
+    });
 
   } catch (error: any) {
     console.error(error);
